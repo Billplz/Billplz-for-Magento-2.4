@@ -1,0 +1,10 @@
+{
+    "sales_order": {
+        "column": {
+            "billplz_bill_id": true
+        },
+        "index": {
+            "SALES_ORDER_BILLPLZ_BILL_ID": true
+        }
+    }
+}

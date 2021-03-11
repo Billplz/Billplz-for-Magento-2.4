@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="sales_order" resource="sales" comment="Sales Flat Order">
+        <column xsi:type="varchar" name="billplz_bill_id" length="32" nullable="true" comment="Billplz Bill ID"/>
+        <index referenceId="billplz_unique_index" indexType="btree">
+            <column name="billplz_bill_id"/>
+        </index>
+    </table>
+</schema>
