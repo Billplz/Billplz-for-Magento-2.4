@@ -25,7 +25,7 @@ The extension is using [Billplz](https://www.billplz.com/) API v3.
     ```bash
     php bin/magento cache:flush
     ```
-1. Configure it in `Stores > Sales > Payment Methods > Billplz`.
+1. Configure it in `Stores > Configuration > Sales > Payment Methods > Billplz`.
 1. Get Billplz API secret key, Collection ID, XSignature Key and update in the config.
 
 #### Test Mode
