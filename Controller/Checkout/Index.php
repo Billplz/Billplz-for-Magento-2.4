@@ -19,40 +19,47 @@ class Index extends AbstractAction
             $this->_redirect('checkout/onepage/error', array('_secure' => false));
         }
 
-        $orderId = $order->getRealOrderId();
-        $gatewayConf = $this->getGatewayConfig();
+        $orderId        = $order->getRealOrderId();
+        $gatewayConf    = $this->getGatewayConfig();
         $billingAddress = $order->getBillingAddress();
 
         $parameter = array(
             'collection_id' => trim($gatewayConf->getCollectionId()),
-            'email' => $order->getData('customer_email'),
-            'mobile' => $billingAddress->getData('telephone'),
-            'name' => $order->getCustomerFirstname() . ' ' . $order->getCustomerLastname(),
-            'amount' => $order->getTotalDue() * 100,
-            'callback_url' => $this->getUrlHelper()->getCallbackUrl(),
-            'description' => "Order $orderId",
+            'email'         => $order->getData('customer_email'),
+            'mobile'        => $billingAddress->getData('telephone'),
+            'name'          => $order->getBillingAddress()->getFirstname() . ' ' . $order->getBillingAddress()->getLastname(),
+            'amount'        => $order->getTotalDue() * 100,
+            'callback_url'  => $this->getUrlHelper()->getCallbackUrl(),
+            'description'   => "Order $orderId",
         );
-        $optional = array(
+        $optional  = array(
             'redirect_url' => $this->getUrlHelper()->getRedirectUrl(),
         );
-        
+
         if (empty($parameter['mobile']) && empty($parameter['email'])) {
             $parameter['email'] = 'noreply@billplz.com';
         }
 
         if (empty($parameter['name'])) {
-            $parameter['name'] =  'Payer Name Unavailable';
+            $parameter['name'] = 'Payer Name Unavailable';
         }
 
         $connect = new BillplzConnect(trim($gatewayConf->getApiKey()));
         $connect->detectMode();
 
-        $billplz = new BillplzAPI($connect);
-        $payload = $billplz->toArray($billplz->createBill($parameter, $optional));
-
+        $billplz   = new BillplzAPI($connect);
+        $payload   = $billplz->toArray($billplz->createBill($parameter, $optional));
+        $payloadId = 0;
+        if (isset($payload[1]['id'])) {
+            $payloadId = $payload[1]['id'];
+        }
+        $url = '';
+        if (isset($payload[1]['url'])) {
+            $url = $payload[1]['url'];
+        }
         $order->setState(\Magento\Sales\Model\Order::STATE_PENDING_PAYMENT);
-        $order->addCommentToStatusHistory("Collection ID: {$parameter['collection_id']}; Bill: {$payload[1]['id']}; Status: Pending Payment; Bill URL: {$payload[1]['url']}", true, true);
-        $order->setData('billplz_bill_id', $payload[1]['id']);
+        $order->addCommentToStatusHistory("Collection ID: {$parameter['collection_id']}; Bill: {$payloadId}; Status: Pending Payment; Bill URL: {$url}", true, true);
+        $order->setData('billplz_bill_id', $payloadId);
         $order->save();
 
         return $payload;
@@ -73,7 +80,7 @@ class Index extends AbstractAction
     private function renderRedirect($bill_url)
     {
         echo
-            "<html>
+        "<html>
             <body>
             <a href=\"$bill_url\">Redirecting to Bill</a>
             </body>
@@ -92,6 +99,11 @@ class Index extends AbstractAction
     {
         try {
             $order = $this->getOrder();
+            if ($order == null) {
+                $quote = $this->_checkoutSession->getQuote();
+                $this->cartManagementInterface->placeOrder($quote->getId());
+                $order = $this->getOrder();
+            }
             if ($order->getState() === Order::STATE_PENDING_PAYMENT) {
                 list($rheader, $bill) = $this->createBill($order);
                 $this->redirectToBill($rheader === 200, $bill);

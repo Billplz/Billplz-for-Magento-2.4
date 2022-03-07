@@ -6,6 +6,9 @@ use Billplz\BillplzPaymentGateway\Gateway\Config\Config;
 use Billplz\BillplzPaymentGateway\Helper\Checkout;
 use Billplz\BillplzPaymentGateway\Helper\UrlCallbackRedirect;
 use Magento\Checkout\Model\Session;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\CartManagementInterface;
+use Magento\Quote\Model\QuoteManagement;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Sales\Model\OrderFactory;
@@ -21,7 +24,7 @@ abstract class AbstractAction extends Action
 
     private $_context;
 
-    private $_checkoutSession;
+    protected $_checkoutSession;
 
     private $_orderFactory;
 
@@ -33,6 +36,33 @@ abstract class AbstractAction extends Action
 
     private $_logger;
 
+    /**
+     * @var CartRepositoryInterface
+     */
+    protected $cartRepositoryInterface;
+
+    /**
+     * @var CartManagementInterface
+     */
+    protected $cartManagementInterface;
+
+    /**
+     * @var QuoteManagement
+     */
+    protected $quoteManagement;
+
+    /**
+     * @param Config $gatewayConfig
+     * @param Session $checkoutSession
+     * @param Context $context
+     * @param OrderFactory $orderFactory
+     * @param UrlCallbackRedirect $urlHelper
+     * @param Checkout $checkoutHelper
+     * @param CartManagementInterface $cartManagementInterface
+     * @param CartRepositoryInterface $cartRepositoryInterface
+     * @param QuoteManagement $quoteManagement
+     * @param LoggerInterface $logger
+     */
     public function __construct(
         Config $gatewayConfig,
         Session $checkoutSession,
@@ -40,6 +70,9 @@ abstract class AbstractAction extends Action
         OrderFactory $orderFactory,
         UrlCallbackRedirect $urlHelper,
         Checkout $checkoutHelper,
+        CartManagementInterface $cartManagementInterface,
+        CartRepositoryInterface $cartRepositoryInterface,
+        QuoteManagement $quoteManagement,
         LoggerInterface $logger) {
         parent::__construct($context);
         $this->_checkoutSession = $checkoutSession;
@@ -49,6 +82,9 @@ abstract class AbstractAction extends Action
         $this->_messageManager = $context->getMessageManager();
         $this->_logger = $logger;
         $this->_urlHelper = $urlHelper;
+        $this->cartManagementInterface = $cartManagementInterface;
+        $this->cartRepositoryInterface = $cartRepositoryInterface;
+        $this->quoteManagement = $quoteManagement;
     }
 
     protected function getContext()

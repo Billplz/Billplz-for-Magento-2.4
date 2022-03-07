@@ -4,7 +4,7 @@ namespace Billplz\BillplzPaymentGateway\Gateway\Request;
 
 use Billplz\BillplzPaymentGateway\Gateway\Config\Config;
 use Magento\Checkout\Model\Session;
-use Magento\Payment\Gateway\Data\OrderAdapterInterface;
+use Magento\Payment\Gateway\Data\Order\OrderAdapter;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Payment\Model\Method\Logger;
 use Magento\Sales\Model\Order;
@@ -35,7 +35,7 @@ class InitializationRequest implements BuilderInterface
      * @param OrderAdapter $order
      * @return bool;
      */
-    private function validateQuote(OrderAdapterInterface $order)
+    private function validateQuote($order)
     {
 
         if ($order->getCurrencyCode() !== 'MYR') {
